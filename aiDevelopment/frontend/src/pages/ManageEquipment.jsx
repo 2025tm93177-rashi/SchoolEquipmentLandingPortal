@@ -1,63 +1,62 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getUser } from '../utils/auth';
-import Header from '../components/common/Header';
-import { equipmentAPI } from '../services/api';
-import './ManageEquipment.css';
-import CommonPopup from '../components/common/CommonPopup';
-
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getUser } from "../utils/auth";
+import Header from "../components/common/Header";
+import { equipmentAPI } from "../services/api";
+import "./ManageEquipment.css";
+import CommonPopup from "../components/common/CommonPopup";
 const ManageEquipment = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
+  const [modalMode, setModalMode] = useState("add"); // 'add' or 'edit'
   const [selectedEquipment, setSelectedEquipment] = useState(null);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalEquipment, setTotalEquipment] = useState(0);
   const itemsPerPage = 10;
-  
+
   // Filter state
-  const [categoryFilter, setCategoryFilter] = useState(''); // '', 'Sports Kits', 'Lab Equipment', etc.
-  
+  const [categoryFilter, setCategoryFilter] = useState(""); // '', 'Sports Kits', 'Lab Equipment', etc.
+
   // Confirmation popup state
   const [confirmPopup, setConfirmPopup] = useState({
     isOpen: false,
     message: "",
     onConfirm: null,
   });
-  
+
   // Form state
   const [formData, setFormData] = useState({
-    name: '',
-    category: '',
-    condition: 'Good',
+    name: "",
+    category: "",
+    condition: "Good",
     quantity: 1,
     available_quantity: 1,
-    description: ''
+    description: "",
   });
 
   // Check if user is admin
   useEffect(() => {
     const userData = getUser();
-    if (userData && userData.role === 'Admin') {
+    if (userData && userData.role === "Admin") {
       setUser(userData);
-      fetchEquipment();
+      fetchEquipment(); //eslint-disable-line
     } else {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [navigate]);
 
   // Fetch equipment when page or filter changes
   useEffect(() => {
     if (user) {
-      fetchEquipment();
+      fetchEquipment(); // eslint-disable-line
     }
   }, [currentPage, categoryFilter]);
 
@@ -67,18 +66,18 @@ const ManageEquipment = () => {
       setLoading(true);
       const params = {
         page: currentPage,
-        limit: itemsPerPage
+        limit: itemsPerPage,
       };
-      
+
       // Add category filter if selected
       if (categoryFilter) {
         params.category = categoryFilter;
       }
-      
+
       const response = await equipmentAPI.getAll(params);
       if (response.data.success) {
         setEquipment(response.data.data);
-        
+
         // Set pagination info
         if (response.data.pagination) {
           setTotalPages(response.data.pagination.pages);
@@ -86,7 +85,7 @@ const ManageEquipment = () => {
         }
       }
     } catch (err) {
-      setError('Failed to fetch equipment');
+      setError("Failed to fetch equipment");
       console.error(err);
     } finally {
       setLoading(false);
@@ -109,22 +108,22 @@ const ManageEquipment = () => {
 
   // Open Add Equipment Modal
   const handleAddEquipment = () => {
-    setModalMode('add');
+    setModalMode("add");
     setFormData({
-      name: '',
-      category: '',
-      condition: 'Good',
+      name: "",
+      category: "",
+      condition: "Good",
       quantity: 1,
       available_quantity: 1,
-      description: ''
+      description: "",
     });
-    setError('');
+    setError("");
     setShowModal(true);
   };
 
   // Open Edit Equipment Modal
   const handleEditEquipment = (item) => {
-    setModalMode('edit');
+    setModalMode("edit");
     setSelectedEquipment(item);
     setFormData({
       name: item.name,
@@ -132,36 +131,36 @@ const ManageEquipment = () => {
       condition: item.condition,
       quantity: item.quantity,
       available_quantity: item.available_quantity,
-      description: item.description || ''
+      description: item.description || "",
     });
-    setError('');
+    setError("");
     setShowModal(true);
   };
 
   // Handle form input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   // Submit form (Add or Edit)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccessMessage('');
+    setError("");
+    setSuccessMessage("");
 
     try {
-      if (modalMode === 'add') {
+      if (modalMode === "add") {
         // Create new equipment
         const equipmentData = {
           name: formData.name.trim(),
           category: formData.category.trim(),
           condition: formData.condition,
           quantity: parseInt(formData.quantity),
-          available_quantity: parseInt(formData.available_quantity)
+          available_quantity: parseInt(formData.available_quantity),
         };
 
         // Add optional fields only if they have values
@@ -171,7 +170,7 @@ const ManageEquipment = () => {
 
         const response = await equipmentAPI.create(equipmentData);
         if (response.data.success) {
-          setSuccessMessage('Equipment created successfully!');
+          setSuccessMessage("Equipment created successfully!");
           setShowModal(false);
           setCurrentPage(1); // Reset to first page
           fetchEquipment(); // Refresh list
@@ -183,7 +182,7 @@ const ManageEquipment = () => {
           category: formData.category.trim(),
           condition: formData.condition,
           quantity: parseInt(formData.quantity),
-          available_quantity: parseInt(formData.available_quantity)
+          available_quantity: parseInt(formData.available_quantity),
         };
 
         // Add optional fields only if they have values
@@ -191,28 +190,36 @@ const ManageEquipment = () => {
           updateData.description = formData.description.trim();
         }
 
-        const response = await equipmentAPI.update(selectedEquipment.id, updateData);
+        const response = await equipmentAPI.update(
+          selectedEquipment.id,
+          updateData,
+        );
         if (response.data.success) {
-          setSuccessMessage('Equipment updated successfully!');
+          setSuccessMessage("Equipment updated successfully!");
           setShowModal(false);
           fetchEquipment(); // Refresh list
         }
       }
 
       // Clear success message after 2.5 seconds
-      setTimeout(() => setSuccessMessage(''), 2500);
+      setTimeout(() => setSuccessMessage(""), 2500);
     } catch (err) {
-      console.error('Error:', err);
+      console.error("Error:", err);
       if (err.response && err.response.data) {
         // Handle validation errors array
-        if (err.response.data.errors && Array.isArray(err.response.data.errors)) {
-          const errorMessages = err.response.data.errors.map(e => e.message).join(', ');
+        if (
+          err.response.data.errors &&
+          Array.isArray(err.response.data.errors)
+        ) {
+          const errorMessages = err.response.data.errors
+            .map((e) => e.message)
+            .join(", ");
           setError(errorMessages);
         } else {
-          setError(err.response.data.message || 'Operation failed');
+          setError(err.response.data.message || "Operation failed");
         }
       } else {
-        setError('An error occurred. Please try again.');
+        setError("An error occurred. Please try again.");
       }
     }
   };
@@ -224,17 +231,17 @@ const ManageEquipment = () => {
       try {
         const response = await equipmentAPI.delete(id);
         if (response.data.success) {
-          setSuccessMessage('Equipment deleted successfully!');
+          setSuccessMessage("Equipment deleted successfully!");
           fetchEquipment(); // Refresh list
-          setTimeout(() => setSuccessMessage(''), 2500);
+          setTimeout(() => setSuccessMessage(""), 2500);
         }
       } catch (err) {
         if (err.response && err.response.data) {
-          setError(err.response.data.message || 'Delete failed');
+          setError(err.response.data.message || "Delete failed");
         } else {
-          setError('Failed to delete equipment');
+          setError("Failed to delete equipment");
         }
-        setTimeout(() => setError(''), 3000);
+        setTimeout(() => setError(""), 3000);
       }
     };
 
@@ -248,7 +255,7 @@ const ManageEquipment = () => {
   // Close modal
   const handleCloseModal = () => {
     setShowModal(false);
-    setError('');
+    setError("");
     setSelectedEquipment(null);
   };
 
@@ -257,30 +264,29 @@ const ManageEquipment = () => {
   return (
     <div className="manage-equipment-page">
       <Header />
-      
+
       <div className="manage-equipment-container">
         <div className="page-header">
           <div>
             <h1>Manage Equipment</h1>
             <p>Add, edit, and manage equipment inventory</p>
           </div>
-          <button className="btn-back" onClick={() => navigate('/admin/dashboard')}>
+          <button
+            className="btn-back"
+            onClick={() => navigate("/admin/dashboard")}
+          >
             ← Back to Dashboard
           </button>
         </div>
 
         {/* Success Message Toast */}
         {successMessage && (
-          <div className="success-toast">
-            {successMessage}
-          </div>
+          <div className="success-toast">{successMessage}</div>
         )}
 
         {/* Error Message */}
         {error && !showModal && (
-          <div className="alert alert-error">
-             {error}
-          </div>
+          <div className="alert alert-error">{error}</div>
         )}
 
         {/* Add Equipment Button & Filter */}
@@ -289,13 +295,13 @@ const ManageEquipment = () => {
             <button className="btn-primary" onClick={handleAddEquipment}>
               + Add New Equipment
             </button>
-            
+
             {/* Category Filter */}
             <div className="filter-group">
               <label htmlFor="categoryFilter">Filter by Category:</label>
-              <select 
+              <select
                 id="categoryFilter"
-                value={categoryFilter} 
+                value={categoryFilter}
                 onChange={handleCategoryFilterChange}
                 className="filter-select"
               >
@@ -308,7 +314,7 @@ const ManageEquipment = () => {
               </select>
             </div>
           </div>
-          
+
           {totalEquipment > 0 && (
             <div className="item-count">
               Showing {equipment.length} of {totalEquipment} items
@@ -345,41 +351,51 @@ const ManageEquipment = () => {
                       <div className="name-cell">
                         <strong>{item.name}</strong>
                         {item.description && (
-                          <small className="description">{item.description}</small>
+                          <small className="description">
+                            {item.description}
+                          </small>
                         )}
                       </div>
                     </td>
                     <td>
-                      <span className="category-badge">
-                        {item.category}
-                      </span>
+                      <span className="category-badge">{item.category}</span>
                     </td>
                     <td>
-                      <span className={`condition-badge condition-${item.condition.toLowerCase().replace(' ', '-')}`}>
+                      <span
+                        className={`condition-badge condition-${item.condition.toLowerCase().replace(" ", "-")}`}
+                      >
                         {item.condition}
                       </span>
                     </td>
                     <td className="quantity-cell">{item.quantity}</td>
                     <td className="available-cell">
-                      <span className={item.available_quantity > 0 ? 'available-yes' : 'available-no'}>
+                      <span
+                        className={
+                          item.available_quantity > 0
+                            ? "available-yes"
+                            : "available-no"
+                        }
+                      >
                         {item.available_quantity}
                       </span>
                     </td>
                     <td>
                       <div className="action-buttons">
-                        <button 
+                        <button
                           className="btn-edit"
                           onClick={() => handleEditEquipment(item)}
                           title="Edit Equipment"
                         >
-                           Edit
+                          Edit
                         </button>
-                        <button 
+                        <button
                           className="btn-delete"
-                          onClick={() => handleDeleteEquipment(item.id, item.name)}
+                          onClick={() =>
+                            handleDeleteEquipment(item.id, item.name)
+                          }
                           title="Delete Equipment"
                         >
-                           Delete
+                          Delete
                         </button>
                       </div>
                     </td>
@@ -388,45 +404,51 @@ const ManageEquipment = () => {
               </tbody>
             </table>
           )}
-          
+
           {/* Pagination */}
           {!loading && equipment.length > 0 && totalPages > 1 && (
             <div className="pagination">
-              <button 
+              <button
                 className="pagination-btn"
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
               >
                 « Previous
               </button>
-              
+
               <div className="pagination-info">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => {
-                  if (
-                    pageNum === 1 ||
-                    pageNum === totalPages ||
-                    (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                  ) {
-                    return (
-                      <button
-                        key={pageNum}
-                        className={`pagination-number ${pageNum === currentPage ? 'active' : ''}`}
-                        onClick={() => handlePageChange(pageNum)}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  } else if (
-                    pageNum === currentPage - 2 ||
-                    pageNum === currentPage + 2
-                  ) {
-                    return <span key={pageNum} className="pagination-ellipsis">...</span>;
-                  }
-                  return null;
-                })}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (pageNum) => {
+                    if (
+                      pageNum === 1 ||
+                      pageNum === totalPages ||
+                      (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={pageNum}
+                          className={`pagination-number ${pageNum === currentPage ? "active" : ""}`}
+                          onClick={() => handlePageChange(pageNum)}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    } else if (
+                      pageNum === currentPage - 2 ||
+                      pageNum === currentPage + 2
+                    ) {
+                      return (
+                        <span key={pageNum} className="pagination-ellipsis">
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  },
+                )}
               </div>
-              
-              <button 
+
+              <button
                 className="pagination-btn"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
@@ -443,13 +465,19 @@ const ManageEquipment = () => {
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{modalMode === 'add' ? 'Add New Equipment' : 'Edit Equipment'}</h2>
-              <button className="modal-close" onClick={handleCloseModal}>×</button>
+              <h2>
+                {modalMode === "add" ? "Add New Equipment" : "Edit Equipment"}
+              </h2>
+              <button className="modal-close" onClick={handleCloseModal}>
+                ×
+              </button>
             </div>
 
             {error && (
               <div className="alert alert-error">
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>✗ Error:</div>
+                <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
+                  ✗ Error:
+                </div>
                 <div>{error}</div>
               </div>
             )}
@@ -482,7 +510,9 @@ const ManageEquipment = () => {
                     <option value="Sports Kits">Sports Kits</option>
                     <option value="Lab Equipment">Lab Equipment</option>
                     <option value="Cameras">Cameras</option>
-                    <option value="Musical Instruments">Musical Instruments</option>
+                    <option value="Musical Instruments">
+                      Musical Instruments
+                    </option>
                     <option value="Project Materials">Project Materials</option>
                   </select>
                 </div>
@@ -531,7 +561,13 @@ const ManageEquipment = () => {
                     max={formData.quantity}
                     placeholder="0"
                   />
-                  <small style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                  <small
+                    style={{
+                      fontSize: "12px",
+                      color: "#666",
+                      marginTop: "4px",
+                    }}
+                  >
                     Cannot exceed total quantity
                   </small>
                 </div>
@@ -551,11 +587,17 @@ const ManageEquipment = () => {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={handleCloseModal}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={handleCloseModal}
+                >
                   Cancel
                 </button>
                 <button type="submit" className="btn-primary">
-                  {modalMode === 'add' ? 'Create Equipment' : 'Update Equipment'}
+                  {modalMode === "add"
+                    ? "Create Equipment"
+                    : "Update Equipment"}
                 </button>
               </div>
             </form>

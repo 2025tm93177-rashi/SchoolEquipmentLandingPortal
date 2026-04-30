@@ -35,8 +35,8 @@ const PendingRequests = () => {
   });
 
   useEffect(() => {
-    // eslint-disable-next-line
     fetchPendingRequests();
+    // eslint-disable-next-line
   }, []);
 
   const fetchPendingRequests = async () => {

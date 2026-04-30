@@ -48,17 +48,19 @@ const ManageUsers = () => {
     const userData = getUser();
     if (userData && userData.role === "Admin") {
       setUser(userData);
-      fetchUsers(); // eslint-disable-line
+      fetchUsers();
     } else {
       navigate("/dashboard");
     }
+    // eslint-disable-next-line
   }, [navigate]);
 
   // Fetch users when page or filter changes
   useEffect(() => {
     if (user) {
-      fetchUsers(); // eslint-disable-line
+      fetchUsers();
     }
+    // eslint-disable-next-line
   }, [currentPage, roleFilter]);
 
   // Fetch all users with pagination and filter

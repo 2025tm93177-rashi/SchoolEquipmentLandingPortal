@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getUser } from '../utils/auth';
-import Header from '../components/common/Header';
-import { usersAPI } from '../services/api';
-import './ManageUsers.css';
-import CommonPopup from '../components/common/CommonPopup';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getUser } from "../utils/auth";
+import Header from "../components/common/Header";
+import { usersAPI } from "../services/api";
+import "./ManageUsers.css";
+import CommonPopup from "../components/common/CommonPopup";
 
 const ManageUsers = () => {
   const navigate = useNavigate();
@@ -12,46 +12,47 @@ const ManageUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
+  const [modalMode, setModalMode] = useState("add"); // 'add' or 'edit'
   const [selectedUser, setSelectedUser] = useState(null);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
   const usersPerPage = 10;
-  
+
   // Filter state
-  const [roleFilter, setRoleFilter] = useState(''); // '', 'Student', 'Teacher', 'Admin'
-  
+  const [roleFilter, setRoleFilter] = useState(""); // '', 'Student', 'Teacher', 'Admin'
+
   // Confirmation popup state
   const [confirmPopup, setConfirmPopup] = useState({
     isOpen: false,
     message: "",
     onConfirm: null,
   });
-  
+
   // Form state
   const [formData, setFormData] = useState({
-    email: '',
-    full_name: '',
-    phone: '',
-    department: '',
-    role: 'Student',
-    password: ''
+    email: "",
+    full_name: "",
+    phone: "",
+    department: "",
+    role: "Student",
+    password: "",
   });
 
   // Check if user is admin
   useEffect(() => {
     const userData = getUser();
-    if (userData && userData.role === 'Admin') {
+    if (userData && userData.role === "Admin") {
       setUser(userData);
       fetchUsers();
     } else {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
+    // eslint-disable-next-line
   }, [navigate]);
 
   // Fetch users when page or filter changes
@@ -59,6 +60,7 @@ const ManageUsers = () => {
     if (user) {
       fetchUsers();
     }
+    // eslint-disable-next-line
   }, [currentPage, roleFilter]);
 
   // Fetch all users with pagination and filter
@@ -67,18 +69,18 @@ const ManageUsers = () => {
       setLoading(true);
       const params = {
         page: currentPage,
-        limit: usersPerPage
+        limit: usersPerPage,
       };
-      
+
       // Add role filter if selected
       if (roleFilter) {
         params.role = roleFilter;
       }
-      
+
       const response = await usersAPI.getAll(params);
       if (response.data.success) {
         setUsers(response.data.data);
-        
+
         // Set pagination info
         if (response.data.pagination) {
           setTotalPages(response.data.pagination.pages);
@@ -86,7 +88,7 @@ const ManageUsers = () => {
         }
       }
     } catch (err) {
-      setError('Failed to fetch users');
+      setError("Failed to fetch users");
       console.error(err);
     } finally {
       setLoading(false);
@@ -109,58 +111,58 @@ const ManageUsers = () => {
 
   // Open Add User Modal
   const handleAddUser = () => {
-    setModalMode('add');
+    setModalMode("add");
     setFormData({
-      email: '',
-      full_name: '',
-      phone: '',
-      department: '',
-      role: 'Student',
-      password: ''
+      email: "",
+      full_name: "",
+      phone: "",
+      department: "",
+      role: "Student",
+      password: "",
     });
-    setError('');
+    setError("");
     setShowModal(true);
   };
 
   // Open Edit User Modal
   const handleEditUser = (userToEdit) => {
-    setModalMode('edit');
+    setModalMode("edit");
     setSelectedUser(userToEdit);
     setFormData({
       email: userToEdit.email,
       full_name: userToEdit.full_name,
-      phone: userToEdit.phone || '',
-      department: userToEdit.department || '',
+      phone: userToEdit.phone || "",
+      department: userToEdit.department || "",
       role: userToEdit.role,
-      password: '' // Don't show password
+      password: "", // Don't show password
     });
-    setError('');
+    setError("");
     setShowModal(true);
   };
 
   // Handle form input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   // Submit form (Add or Edit)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccessMessage('');
+    setError("");
+    setSuccessMessage("");
 
     try {
-      if (modalMode === 'add') {
+      if (modalMode === "add") {
         // Create new user - prepare data
         const userData = {
           email: formData.email.trim(),
           full_name: formData.full_name.trim(),
           role: formData.role,
-          password: formData.password
+          password: formData.password,
         };
 
         // Add optional fields only if they have values
@@ -173,7 +175,7 @@ const ManageUsers = () => {
 
         const response = await usersAPI.create(userData);
         if (response.data.success) {
-          setSuccessMessage('User created successfully!');
+          setSuccessMessage("User created successfully!");
           setShowModal(false);
           setCurrentPage(1); // Reset to first page
           fetchUsers(); // Refresh user list
@@ -181,7 +183,7 @@ const ManageUsers = () => {
       } else {
         // Update existing user - only send fields that can be updated
         const updateData = {
-          full_name: formData.full_name.trim()
+          full_name: formData.full_name.trim(),
         };
 
         // Add optional fields only if they have values
@@ -194,26 +196,31 @@ const ManageUsers = () => {
 
         const response = await usersAPI.update(selectedUser.id, updateData);
         if (response.data.success) {
-          setSuccessMessage('User updated successfully!');
+          setSuccessMessage("User updated successfully!");
           setShowModal(false);
           fetchUsers(); // Refresh user list
         }
       }
 
       // Clear success message after 2.5 seconds
-      setTimeout(() => setSuccessMessage(''), 2500);
+      setTimeout(() => setSuccessMessage(""), 2500);
     } catch (err) {
-      console.error('Error:', err);
+      console.error("Error:", err);
       if (err.response && err.response.data) {
         // Handle validation errors array
-        if (err.response.data.errors && Array.isArray(err.response.data.errors)) {
-          const errorMessages = err.response.data.errors.map(e => e.message).join(', ');
+        if (
+          err.response.data.errors &&
+          Array.isArray(err.response.data.errors)
+        ) {
+          const errorMessages = err.response.data.errors
+            .map((e) => e.message)
+            .join(", ");
           setError(errorMessages);
         } else {
-          setError(err.response.data.message || 'Operation failed');
+          setError(err.response.data.message || "Operation failed");
         }
       } else {
-        setError('An error occurred. Please try again.');
+        setError("An error occurred. Please try again.");
       }
     }
   };
@@ -225,17 +232,17 @@ const ManageUsers = () => {
       try {
         const response = await usersAPI.delete(userId);
         if (response.data.success) {
-          setSuccessMessage('User deleted successfully!');
+          setSuccessMessage("User deleted successfully!");
           fetchUsers(); // Refresh user list
-          setTimeout(() => setSuccessMessage(''), 2500);
+          setTimeout(() => setSuccessMessage(""), 2500);
         }
       } catch (err) {
         if (err.response && err.response.data) {
-          setError(err.response.data.message || 'Delete failed');
+          setError(err.response.data.message || "Delete failed");
         } else {
-          setError('Failed to delete user');
+          setError("Failed to delete user");
         }
-        setTimeout(() => setError(''), 3000);
+        setTimeout(() => setError(""), 3000);
       }
     };
 
@@ -249,7 +256,7 @@ const ManageUsers = () => {
   // Close modal
   const handleCloseModal = () => {
     setShowModal(false);
-    setError('');
+    setError("");
     setSelectedUser(null);
   };
 
@@ -258,30 +265,29 @@ const ManageUsers = () => {
   return (
     <div className="manage-users-page">
       <Header />
-      
+
       <div className="manage-users-container">
         <div className="page-header">
           <div>
             <h1>Manage Users</h1>
             <p>Add, edit, and manage user accounts</p>
           </div>
-          <button className="btn-back" onClick={() => navigate('/admin/dashboard')}>
+          <button
+            className="btn-back"
+            onClick={() => navigate("/admin/dashboard")}
+          >
             ← Back to Dashboard
           </button>
         </div>
 
         {/* Success Message Toast */}
         {successMessage && (
-          <div className="success-toast">
-            {successMessage}
-          </div>
+          <div className="success-toast">{successMessage}</div>
         )}
 
         {/* Error Message */}
         {error && !showModal && (
-          <div className="alert alert-error">
-             {error}
-          </div>
+          <div className="alert alert-error">{error}</div>
         )}
 
         {/* Add User Button */}
@@ -290,13 +296,13 @@ const ManageUsers = () => {
             <button className="btn-primary" onClick={handleAddUser}>
               + Add New User
             </button>
-            
+
             {/* Role Filter */}
             <div className="filter-group">
               <label htmlFor="roleFilter">Filter by Role:</label>
-              <select 
+              <select
                 id="roleFilter"
-                value={roleFilter} 
+                value={roleFilter}
                 onChange={handleRoleFilterChange}
                 className="filter-select"
               >
@@ -307,7 +313,7 @@ const ManageUsers = () => {
               </select>
             </div>
           </div>
-          
+
           {totalUsers > 0 && (
             <div className="user-count">
               Showing {users.length} of {totalUsers} users
@@ -343,30 +349,36 @@ const ManageUsers = () => {
                     <td>{(currentPage - 1) * usersPerPage + index + 1}</td>
                     <td>{userItem.full_name}</td>
                     <td>{userItem.email}</td>
-                    <td>{userItem.phone || '-'}</td>
-                    <td>{userItem.department || '-'}</td>
+                    <td>{userItem.phone || "-"}</td>
+                    <td>{userItem.department || "-"}</td>
                     <td>
-                      <span className={`role-badge role-${userItem.role.toLowerCase()}`}>
+                      <span
+                        className={`role-badge role-${userItem.role.toLowerCase()}`}
+                      >
                         {userItem.role}
                       </span>
                     </td>
                     <td>
-                      <span className={`status-badge status-${userItem.status.toLowerCase().replace(' ', '-')}`}>
+                      <span
+                        className={`status-badge status-${userItem.status.toLowerCase().replace(" ", "-")}`}
+                      >
                         {userItem.status}
                       </span>
                     </td>
                     <td>
                       <div className="action-buttons">
-                        <button 
+                        <button
                           className="btn-edit"
                           onClick={() => handleEditUser(userItem)}
                           title="Edit User"
                         >
-                           Edit
+                          Edit
                         </button>
-                        <button 
+                        <button
                           className="btn-delete"
-                          onClick={() => handleDeleteUser(userItem.id, userItem.full_name)}
+                          onClick={() =>
+                            handleDeleteUser(userItem.id, userItem.full_name)
+                          }
                           title="Delete User"
                           disabled={userItem.id === user.id}
                         >
@@ -379,47 +391,53 @@ const ManageUsers = () => {
               </tbody>
             </table>
           )}
-          
+
           {/* Pagination */}
           {!loading && users.length > 0 && totalPages > 1 && (
             <div className="pagination">
-              <button 
+              <button
                 className="pagination-btn"
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
               >
                 « Previous
               </button>
-              
+
               <div className="pagination-info">
                 {/* Show page numbers */}
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => {
-                  // Show first page, last page, current page, and pages around current
-                  if (
-                    pageNum === 1 ||
-                    pageNum === totalPages ||
-                    (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                  ) {
-                    return (
-                      <button
-                        key={pageNum}
-                        className={`pagination-number ${pageNum === currentPage ? 'active' : ''}`}
-                        onClick={() => handlePageChange(pageNum)}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  } else if (
-                    pageNum === currentPage - 2 ||
-                    pageNum === currentPage + 2
-                  ) {
-                    return <span key={pageNum} className="pagination-ellipsis">...</span>;
-                  }
-                  return null;
-                })}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (pageNum) => {
+                    // Show first page, last page, current page, and pages around current
+                    if (
+                      pageNum === 1 ||
+                      pageNum === totalPages ||
+                      (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={pageNum}
+                          className={`pagination-number ${pageNum === currentPage ? "active" : ""}`}
+                          onClick={() => handlePageChange(pageNum)}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    } else if (
+                      pageNum === currentPage - 2 ||
+                      pageNum === currentPage + 2
+                    ) {
+                      return (
+                        <span key={pageNum} className="pagination-ellipsis">
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  },
+                )}
               </div>
-              
-              <button 
+
+              <button
                 className="pagination-btn"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
@@ -436,13 +454,17 @@ const ManageUsers = () => {
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{modalMode === 'add' ? 'Add New User' : 'Edit User'}</h2>
-              <button className="modal-close" onClick={handleCloseModal}>×</button>
+              <h2>{modalMode === "add" ? "Add New User" : "Edit User"}</h2>
+              <button className="modal-close" onClick={handleCloseModal}>
+                ×
+              </button>
             </div>
 
             {error && (
               <div className="alert alert-error">
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>✗ Error:</div>
+                <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
+                  ✗ Error:
+                </div>
                 <div>{error}</div>
               </div>
             )}
@@ -471,13 +493,19 @@ const ManageUsers = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    disabled={modalMode === 'edit'}
+                    disabled={modalMode === "edit"}
                     placeholder="user@school.edu"
                     pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                     title="Please enter a valid email address"
                   />
-                  {modalMode === 'edit' && (
-                    <small style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                  {modalMode === "edit" && (
+                    <small
+                      style={{
+                        fontSize: "12px",
+                        color: "#999",
+                        marginTop: "4px",
+                      }}
+                    >
                       Email cannot be changed
                     </small>
                   )}
@@ -515,7 +543,7 @@ const ManageUsers = () => {
                     value={formData.role}
                     onChange={handleInputChange}
                     required
-                    disabled={modalMode === 'edit'}
+                    disabled={modalMode === "edit"}
                   >
                     <option value="Student">Student</option>
                     <option value="Teacher">Teacher</option>
@@ -524,7 +552,7 @@ const ManageUsers = () => {
                 </div>
 
                 {/* Password (only for add mode) */}
-                {modalMode === 'add' && (
+                {modalMode === "add" && (
                   <div className="form-group">
                     <label>Password *</label>
                     <input
@@ -537,7 +565,13 @@ const ManageUsers = () => {
                       placeholder="Minimum 6 characters"
                       title="Password must be at least 6 characters long"
                     />
-                    <small style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                    <small
+                      style={{
+                        fontSize: "12px",
+                        color: "#666",
+                        marginTop: "4px",
+                      }}
+                    >
                       Minimum 6 characters required
                     </small>
                   </div>
@@ -545,11 +579,15 @@ const ManageUsers = () => {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={handleCloseModal}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={handleCloseModal}
+                >
                   Cancel
                 </button>
                 <button type="submit" className="btn-primary">
-                  {modalMode === 'add' ? 'Create User' : 'Update User'}
+                  {modalMode === "add" ? "Create User" : "Update User"}
                 </button>
               </div>
             </form>

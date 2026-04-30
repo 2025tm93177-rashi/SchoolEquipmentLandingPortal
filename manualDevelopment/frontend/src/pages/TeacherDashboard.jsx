@@ -11,7 +11,7 @@ const TeacherDashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [equipment, setEquipment] = useState([]);
-  const [loadingEquipment, setLoadingEquipment] = useState(true);
+  //const [loadingEquipment, setLoadingEquipment] = useState(true);
 
   // Modal states
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -20,7 +20,7 @@ const TeacherDashboard = () => {
 
   const [myRequests, setMyRequests] = useState([]);
   const [pendingApprovals, setPendingApprovals] = useState([]); // Changed from selectedRequest
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
 
   const [selectedRequest, setSelectedRequest] = useState(null); // Only for rejection modal
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -55,7 +55,7 @@ const TeacherDashboard = () => {
   // Fetch only 4 equipment items for dashboard preview
   const fetchEquipment = async () => {
     try {
-      setLoadingEquipment(true);
+      // setLoadingEquipment(true);
       const response = await equipmentAPI.getAll({ limit: 4 });
       if (response.data.success) {
         setEquipment(response.data.data);
@@ -63,14 +63,14 @@ const TeacherDashboard = () => {
     } catch (err) {
       console.error("Failed to fetch equipment:", err);
     } finally {
-      setLoadingEquipment(false);
+      // setLoadingEquipment(false);
     }
   };
 
   // Fetch teacher's own requests
   const fetchMyRequests = async () => {
     try {
-      setLoading(true);
+      // setLoading(true);
       const response = await requestsAPI.getMyRequests({ limit: 4 });
       if (response.data.success) {
         setMyRequests(response.data.data || []);
@@ -81,14 +81,14 @@ const TeacherDashboard = () => {
       console.error("Error fetching my requests:", error);
       setMyRequests([]);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
   // Fetch pending requests from students (for approval)
   const fetchPendingRequests = async () => {
     try {
-      setLoading(true);
+      // setLoading(true);
       const params = { status: "Pending" };
 
       const response = await requestsAPI.getAll(params);
@@ -96,7 +96,7 @@ const TeacherDashboard = () => {
         // Filter to show only Student requests for Teachers
         const allRequests = response.data.data || [];
         const studentRequests = allRequests.filter(
-          (req) => req.requester_role === "Student"
+          (req) => req.requester_role === "Student",
         );
         setPendingApprovals(studentRequests.slice(0, 4)); // Show only first 4 on dashboard
       } else {
@@ -106,7 +106,7 @@ const TeacherDashboard = () => {
       console.error("Error fetching pending requests:", error);
       setPendingApprovals([]);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -221,13 +221,13 @@ const TeacherDashboard = () => {
           </div>
           <div className="stat-card">
             <div className="stat-content">
-              <h3>{myRequests.filter(r => r.status === 'Pending').length}</h3>
+              <h3>{myRequests.filter((r) => r.status === "Pending").length}</h3>
               <p>Pending Requests</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-content">
-              <h3>{myRequests.filter(r => r.status === 'Denied').length}</h3>
+              <h3>{myRequests.filter((r) => r.status === "Denied").length}</h3>
               <p>Rejected Requests</p>
             </div>
           </div>
@@ -252,7 +252,9 @@ const TeacherDashboard = () => {
                   <div className="approval-header">
                     <div>
                       <h3>{approval.requester_name}</h3>
-                      <p className="equipment-name">{approval.equipment_name}</p>
+                      <p className="equipment-name">
+                        {approval.equipment_name}
+                      </p>
                     </div>
                     <span className="status-badge pending">Pending</span>
                   </div>
@@ -344,7 +346,9 @@ const TeacherDashboard = () => {
                 <div key={request.id} className="request-card">
                   <div className="request-header">
                     <h3>{request.equipment_name}</h3>
-                    <span className={`status-badge statues-${request.status.toLowerCase()}`}>
+                    <span
+                      className={`status-badge statues-${request.status.toLowerCase()}`}
+                    >
                       {request.status}
                     </span>
                   </div>
@@ -423,9 +427,15 @@ const TeacherDashboard = () => {
             <h2>Reject Request</h2>
             {selectedRequest && (
               <div className="modal-info">
-                <p><strong>Student:</strong> {selectedRequest.requester_name}</p>
-                <p><strong>Equipment:</strong> {selectedRequest.equipment_name}</p>
-                <p><strong>Quantity:</strong> {selectedRequest.quantity}</p>
+                <p>
+                  <strong>Student:</strong> {selectedRequest.requester_name}
+                </p>
+                <p>
+                  <strong>Equipment:</strong> {selectedRequest.equipment_name}
+                </p>
+                <p>
+                  <strong>Quantity:</strong> {selectedRequest.quantity}
+                </p>
               </div>
             )}
             <form onSubmit={handleRejectSubmit}>
@@ -456,7 +466,7 @@ const TeacherDashboard = () => {
                   className="btn-reject"
                   disabled={actionLoading}
                 >
-                  {actionLoading ? 'Rejecting...' : 'Reject Request'}
+                  {actionLoading ? "Rejecting..." : "Reject Request"}
                 </button>
               </div>
             </form>

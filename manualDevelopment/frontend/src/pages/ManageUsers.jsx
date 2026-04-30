@@ -41,18 +41,16 @@ const ManageUsers = () => {
     if (userData && userData.role === "Admin") {
       setUser(userData);
       fetchUsers();
-      // eslint-disable-next-line
     } else {
       navigate("/dashboard");
     }
+    // eslint-disable-next-line
   }, [navigate]);
 
   // Fetch users when page or filter changes
   useEffect(() => {
-    // eslint-disable-next-line
     if (user) {
       fetchUsers();
-      // eslint-disable-next-line
     }
     // eslint-disable-next-line
   }, [currentPage, roleFilter]);

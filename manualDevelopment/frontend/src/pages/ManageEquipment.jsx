@@ -40,19 +40,19 @@ const ManageEquipment = () => {
     const userData = getUser();
     if (userData && userData.role === "Admin") {
       setUser(userData);
-      fetchEquipment();
       // eslint-disable-next-line
+      fetchEquipment();
     } else {
       navigate("/dashboard");
     }
+    // eslint-disable-next-line
   }, [navigate]);
 
   // Fetch equipment when page or filter changes
   useEffect(() => {
-    // eslint-disable-next-line
     if (user) {
-      fetchEquipment();
       // eslint-disable-next-line
+      fetchEquipment();
     }
     // eslint-disable-next-line
   }, [currentPage, categoryFilter]);

@@ -20,7 +20,7 @@ const TeacherDashboard = () => {
 
   const [myRequests, setMyRequests] = useState([]);
   const [pendingApprovals, setPendingApprovals] = useState([]); // Changed from selectedRequest
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
 
   const [selectedRequest, setSelectedRequest] = useState(null); // Only for rejection modal
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -70,7 +70,7 @@ const TeacherDashboard = () => {
   // Fetch teacher's own requests
   const fetchMyRequests = async () => {
     try {
-      setLoading(true);
+      // setLoading(true);
       const response = await requestsAPI.getMyRequests({ limit: 4 });
       if (response.data.success) {
         setMyRequests(response.data.data || []);
@@ -81,14 +81,14 @@ const TeacherDashboard = () => {
       console.error("Error fetching my requests:", error);
       setMyRequests([]);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
   // Fetch pending requests from students (for approval)
   const fetchPendingRequests = async () => {
     try {
-      setLoading(true);
+      // setLoading(true);
       const params = { status: "Pending" };
 
       const response = await requestsAPI.getAll(params);
@@ -106,7 +106,7 @@ const TeacherDashboard = () => {
       console.error("Error fetching pending requests:", error);
       setPendingApprovals([]);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 

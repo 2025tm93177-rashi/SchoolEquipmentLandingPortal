@@ -19,7 +19,7 @@ const StudentDashboard = () => {
   const [successMessage, setSuccessMessage] = useState();
 
   const [myRequests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(false);
+  //  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const userData = getUser();
@@ -61,7 +61,7 @@ const StudentDashboard = () => {
 
   const fetchRequests = async () => {
     try {
-      setLoading(true);
+      // setLoading(true);
       const response = await requestsAPI.getMyRequests({ limit: 4 });
       if (response.data.success) {
         setRequests(response.data.data || []);
@@ -71,7 +71,7 @@ const StudentDashboard = () => {
     } catch (error) {
       console.error("Error fetching requests:", error);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 

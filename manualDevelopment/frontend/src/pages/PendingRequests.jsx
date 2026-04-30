@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { requestsAPI } from '../services/api';
-import Header from '../components/common/Header';
+import { requestsAPI } from "../services/api";
+import Header from "../components/common/Header";
 import "./PendingRequests.css";
-import { getUser } from '../utils/auth';
-import { useNavigate } from 'react-router-dom';
+import { getUser } from "../utils/auth";
+import { useNavigate } from "react-router-dom";
 
 const PendingRequests = () => {
   const navigate = useNavigate();
@@ -16,29 +16,32 @@ const PendingRequests = () => {
   const pageSize = 15;
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionReason, setRejectionReason] = useState("");
 
   useEffect(() => {
     fetchPendingRequests();
+    // eslint-disable-next-line
   }, []);
 
   const fetchPendingRequests = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch all requests (no status filter)
       // Teachers only see requests from Students
       // Admins see all requests
       const params = {}; // No status filter - get all requests
-      
-      if (user?.role === 'Teacher') {
+
+      if (user?.role === "Teacher") {
         // Backend should filter by requester_role, but since your backend doesn't have this filter,
         // we'll filter on the frontend after getting all requests
         const response = await requestsAPI.getAll(params);
         if (response.data.success) {
           // Filter to show only Student requests for Teachers
           const allRequests = response.data.data || [];
-          const studentRequests = allRequests.filter(req => req.requester_role === 'Student');
+          const studentRequests = allRequests.filter(
+            (req) => req.requester_role === "Student",
+          );
           setRequests(studentRequests);
         } else {
           setRequests([]);
@@ -61,13 +64,13 @@ const PendingRequests = () => {
   };
 
   const handleApprove = async (id) => {
-    if (!window.confirm('Are you sure you want to approve this request?')) {
+    if (!window.confirm("Are you sure you want to approve this request?")) {
       return;
     }
 
     try {
       setActionLoading(true);
-      const response = await requestsAPI.approve(id, { notes: '' });
+      const response = await requestsAPI.approve(id, { notes: "" });
       if (response.data.success) {
         alert("Request approved successfully!");
         fetchPendingRequests();
@@ -84,7 +87,7 @@ const PendingRequests = () => {
 
   const handleRejectClick = (request) => {
     setSelectedRequest(request);
-    setRejectionReason('');
+    setRejectionReason("");
     setShowRejectModal(true);
   };
 
@@ -92,21 +95,21 @@ const PendingRequests = () => {
     e.preventDefault();
 
     if (!rejectionReason.trim()) {
-      alert('Please provide a rejection reason');
+      alert("Please provide a rejection reason");
       return;
     }
 
     try {
       setActionLoading(true);
-      const response = await requestsAPI.deny(selectedRequest.id, { 
-        denial_reason: rejectionReason 
+      const response = await requestsAPI.deny(selectedRequest.id, {
+        denial_reason: rejectionReason,
       });
-      
+
       if (response.data.success) {
         alert("Request rejected successfully!");
         setShowRejectModal(false);
         setSelectedRequest(null);
-        setRejectionReason('');
+        setRejectionReason("");
         fetchPendingRequests();
       } else {
         alert(response.data.message || "Failed to reject request.");
@@ -122,7 +125,7 @@ const PendingRequests = () => {
   const handleCloseModal = () => {
     setShowRejectModal(false);
     setSelectedRequest(null);
-    setRejectionReason('');
+    setRejectionReason("");
   };
 
   // Pagination logic
@@ -139,12 +142,16 @@ const PendingRequests = () => {
 
   // Get dashboard path based on role
   const getDashboardPath = () => {
-    if (!user) return '/dashboard';
-    switch(user.role) {
-      case 'Admin': return '/admin/dashboard';
-      case 'Teacher': return '/teacher/dashboard';
-      case 'Student': return '/student/dashboard';
-      default: return '/dashboard';
+    if (!user) return "/dashboard";
+    switch (user.role) {
+      case "Admin":
+        return "/admin/dashboard";
+      case "Teacher":
+        return "/teacher/dashboard";
+      case "Student":
+        return "/student/dashboard";
+      default:
+        return "/dashboard";
     }
   };
 
@@ -157,7 +164,10 @@ const PendingRequests = () => {
             <h1>Equipment Requests</h1>
             <p>View and manage all equipment requests</p>
           </div>
-          <button className="btn-back" onClick={() => navigate(getDashboardPath())}>
+          <button
+            className="btn-back"
+            onClick={() => navigate(getDashboardPath())}
+          >
             ← Back to Dashboard
           </button>
         </div>
@@ -190,9 +200,11 @@ const PendingRequests = () => {
                     <td>{formatDate(req.request_date)}</td>
                     <td>{formatDate(req.return_date)}</td>
                     <td>{req.purpose || "-"}</td>
-                    <td className={`status-${req.status.toLowerCase()}`}>{req.status}</td>
+                    <td className={`status-${req.status.toLowerCase()}`}>
+                      {req.status}
+                    </td>
                     <td>
-                      {req.status === 'Pending' ? (
+                      {req.status === "Pending" ? (
                         <>
                           <button
                             className="btn-approve"
@@ -242,7 +254,9 @@ const PendingRequests = () => {
           ))}
 
           <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
           >
             Next
@@ -257,8 +271,12 @@ const PendingRequests = () => {
             <h2>Reject Request</h2>
             {selectedRequest && (
               <div className="modal-info">
-                <p><strong>Item:</strong> {selectedRequest.equipment_name}</p>
-                <p><strong>Quantity:</strong> {selectedRequest.quantity}</p>
+                <p>
+                  <strong>Item:</strong> {selectedRequest.equipment_name}
+                </p>
+                <p>
+                  <strong>Quantity:</strong> {selectedRequest.quantity}
+                </p>
               </div>
             )}
             <form onSubmit={handleRejectSubmit}>
@@ -289,7 +307,7 @@ const PendingRequests = () => {
                   className="btn-reject"
                   disabled={actionLoading}
                 >
-                  {actionLoading ? 'Rejecting...' : 'Reject Request'}
+                  {actionLoading ? "Rejecting..." : "Reject Request"}
                 </button>
               </div>
             </form>

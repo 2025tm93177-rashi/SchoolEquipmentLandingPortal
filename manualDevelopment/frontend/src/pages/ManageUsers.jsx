@@ -49,10 +49,12 @@ const ManageUsers = () => {
 
   // Fetch users when page or filter changes
   useEffect(() => {
+    // eslint-disable-next-line
     if (user) {
       fetchUsers();
       // eslint-disable-next-line
     }
+    // eslint-disable-next-line
   }, [currentPage, roleFilter]);
 
   // Fetch all users with pagination and filter

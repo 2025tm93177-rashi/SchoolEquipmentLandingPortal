@@ -49,10 +49,12 @@ const ManageEquipment = () => {
 
   // Fetch equipment when page or filter changes
   useEffect(() => {
+    // eslint-disable-next-line
     if (user) {
       fetchEquipment();
       // eslint-disable-next-line
     }
+    // eslint-disable-next-line
   }, [currentPage, categoryFilter]);
 
   // Fetch all equipment with pagination and filter

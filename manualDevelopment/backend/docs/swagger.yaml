@@ -1,0 +1,1867 @@
+openapi: 3.0.0
+info:
+  title: School Equipment Lending Portal API
+  description: |
+
+    ## Authentication
+    All endpoints (except login and setup-password) require a Bearer token in the Authorization header:
+    ```
+    Authorization: Bearer <your_jwt_token>
+    ```
+
+    ## How to Authenticate in Swagger UI
+    1. Click the **Authorize** button (top right)
+    2. Login using POST /auth/login to get a token
+    3. Copy the token from response
+    4. In the Authorize dialog, paste the token (without "Bearer " prefix)
+    5. Click Authorize
+
+    ## User Roles
+    - **Admin**: Full access to all resources
+    - **Teacher**: Can approve/deny requests, view statistics
+    - **Student**: Can request equipment, view own requests
+
+    ## Base URL
+    Replace `{BASE_URL}` with your API endpoint (e.g., `http://localhost:4000`)
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@schoolequipment.com
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:4000/api
+    description: Local server
+  - url: https://school-equipment-landing-portal-q6q.vercel.app/api
+    description: Production server (Vercel Live)
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+
+  schemas:
+    # User Schemas
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique user identifier
+          example: 1
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: john@school.com
+        full_name:
+          type: string
+          description: User's full name
+          example: John Doe
+        role:
+          type: string
+          enum: [Admin, Teacher, Student]
+          description: User role
+          example: Admin
+        phone:
+          type: string
+          description: User's phone number
+          example: +1234567890
+        department:
+          type: string
+          description: User's department
+          example: Science
+        status:
+          type: string
+          enum: [Active, Inactive, Pending Setup]
+          description: User account status
+          example: Active
+        created_at:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+          example: 2025-01-15T10:30:00Z
+        updated_at:
+          type: string
+          format: date-time
+          description: Account last update timestamp
+          example: 2025-01-15T10:30:00Z
+
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - full_name
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: newuser@school.com
+        password:
+          type: string
+          description: Optional password (if not provided, user gets "Pending Setup" status)
+          example: SecurePass123
+        full_name:
+          type: string
+          description: User's full name
+          minLength: 2
+          maxLength: 100
+          example: Jane Smith
+        role:
+          type: string
+          enum: [Admin, Teacher, Student]
+          description: User role
+          example: Student
+        phone:
+          type: string
+          description: User's phone number
+          example: +1234567890
+        department:
+          type: string
+          description: User's department
+          example: Mathematics
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: updated@school.com
+        full_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: Jane Updated
+        role:
+          type: string
+          enum: [Admin, Teacher, Student]
+          example: Teacher
+        phone:
+          type: string
+          example: +9876543210
+        department:
+          type: string
+          example: Physics
+        status:
+          type: string
+          enum: [Active, Inactive]
+          example: Active
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - currentPassword
+        - newPassword
+      properties:
+        currentPassword:
+          type: string
+          description: User's current password
+          minLength: 6
+          example: OldPassword123
+        newPassword:
+          type: string
+          description: New password (minimum 6 characters)
+          minLength: 6
+          example: NewPassword456
+
+    UserStats:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 50
+        students:
+          type: integer
+          example: 30
+        teachers:
+          type: integer
+          example: 15
+        admins:
+          type: integer
+          example: 5
+        active:
+          type: integer
+          example: 45
+        pending:
+          type: integer
+          example: 3
+        inactive:
+          type: integer
+          example: 2
+
+    # Equipment Schemas
+    Equipment:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique equipment identifier
+          example: 1
+        name:
+          type: string
+          description: Equipment name
+          example: Microscope
+        category:
+          type: string
+          description: Equipment category
+          example: Science Lab
+        condition:
+          type: string
+          enum: [Excellent, Good, Fair, Poor, Needs Repair]
+          description: Equipment condition
+          example: Excellent
+        quantity:
+          type: integer
+          description: Total quantity of this equipment
+          example: 10
+        available_quantity:
+          type: integer
+          description: Currently available quantity
+          example: 7
+        description:
+          type: string
+          description: Detailed description of equipment
+          example: Advanced optical microscope for biology classes
+        image_url:
+          type: string
+          format: uri
+          description: URL to equipment image
+          example: https://example.com/images/microscope.jpg
+        created_at:
+          type: string
+          format: date-time
+          example: 2025-01-10T08:00:00Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2025-01-15T14:20:00Z
+
+    CreateEquipmentRequest:
+      type: object
+      required:
+        - name
+        - category
+        - condition
+        - quantity
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Equipment name
+          example: Digital Projector
+        category:
+          type: string
+          description: Equipment category
+          example: Classroom Equipment
+        condition:
+          type: string
+          enum: [Excellent, Good, Fair, Poor, Needs Repair]
+          description: Equipment condition
+          example: Good
+        quantity:
+          type: integer
+          minimum: 0
+          description: Total quantity
+          example: 5
+        available_quantity:
+          type: integer
+          minimum: 0
+          description: Available quantity (defaults to total quantity)
+          example: 5
+        description:
+          type: string
+          maxLength: 500
+          description: Detailed description
+          example: 4K digital projector for presentations
+        image_url:
+          type: string
+          format: uri
+          description: Equipment image URL
+          example: https://example.com/images/projector.jpg
+
+    UpdateEquipmentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: Updated Projector Name
+        category:
+          type: string
+          example: Audio Visual
+        condition:
+          type: string
+          enum: [Excellent, Good, Fair, Poor, Needs Repair]
+          example: Fair
+        quantity:
+          type: integer
+          minimum: 0
+          example: 6
+        available_quantity:
+          type: integer
+          minimum: 0
+          example: 4
+        description:
+          type: string
+          maxLength: 500
+          example: Updated description
+        image_url:
+          type: string
+          format: uri
+          example: https://example.com/images/projector-updated.jpg
+
+    EquipmentStats:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total equipment items
+          example: 25
+        total_quantity:
+          type: integer
+          description: Total quantity across all equipment
+          example: 150
+        total_available:
+          type: integer
+          description: Total available across all equipment
+          example: 120
+        available_items:
+          type: integer
+          description: Number of equipment items with availability > 0
+          example: 23
+        unavailable_items:
+          type: integer
+          description: Number of equipment items with availability = 0
+          example: 2
+
+    # Equipment Request Schemas
+    EquipmentRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Request identifier
+          example: 1
+        user_id:
+          type: integer
+          description: ID of requesting user
+          example: 5
+        equipment_id:
+          type: integer
+          description: ID of requested equipment
+          example: 3
+        quantity:
+          type: integer
+          description: Quantity requested
+          example: 2
+        request_date:
+          type: string
+          format: date-time
+          description: When request was made
+          example: 2025-01-15T09:00:00Z
+        required_date:
+          type: string
+          format: date
+          description: When equipment is needed
+          example: 2025-01-20
+        return_date:
+          type: string
+          format: date
+          description: When equipment should be returned
+          example: 2025-01-25
+        purpose:
+          type: string
+          description: Purpose of the request
+          example: Class demonstration
+        status:
+          type: string
+          enum: [Pending, Approved, Denied, Returned]
+          description: Request status
+          example: Pending
+        denial_reason:
+          type: string
+          description: Reason for denial (if denied)
+          example: Insufficient quantity available
+        notes:
+          type: string
+          description: Admin notes
+          example: Approved for demonstration class
+        approved_date:
+          type: string
+          format: date-time
+          description: When request was approved/denied
+          example: 2025-01-15T10:30:00Z
+        approved_by:
+          type: integer
+          description: ID of approver
+          example: 2
+        approved_by_name:
+          type: string
+          description: Name of approver
+          example: Admin User
+        requester_name:
+          type: string
+          description: Name of requester
+          example: John Student
+        requester_email:
+          type: string
+          description: Email of requester
+          example: john@school.com
+        equipment_name:
+          type: string
+          description: Name of requested equipment
+          example: Microscope
+        equipment_category:
+          type: string
+          description: Category of equipment
+          example: Science Lab
+
+    CreateEquipmentRequestRequest:
+      type: object
+      required:
+        - equipment_id
+        - quantity
+        - required_date
+        - purpose
+      properties:
+        equipment_id:
+          type: integer
+          description: ID of equipment to request
+          example: 3
+        quantity:
+          type: integer
+          minimum: 1
+          description: Quantity needed
+          example: 2
+        required_date:
+          type: string
+          format: date
+          description: When equipment is needed (YYYY-MM-DD)
+          example: 2025-01-20
+        return_date:
+          type: string
+          format: date
+          description: When equipment will be returned (optional)
+          example: 2025-01-25
+        purpose:
+          type: string
+          description: Purpose for the equipment
+          minLength: 5
+          maxLength: 500
+          example: "Biology class demonstration for topic: Plant Structure"
+
+    ApproveRequestRequest:
+      type: object
+      properties:
+        notes:
+          type: string
+          description: Optional notes from approver
+          maxLength: 500
+          example: Approved. Please ensure timely return.
+
+    DenyRequestRequest:
+      type: object
+      required:
+        - denial_reason
+      properties:
+        denial_reason:
+          type: string
+          description: Reason for denying the request
+          minLength: 5
+          maxLength: 500
+          example: Equipment currently in use by another class
+
+    RequestStats:
+      type: object
+      properties:
+        total_requests:
+          type: integer
+          example: 45
+        pending:
+          type: integer
+          example: 5
+        approved:
+          type: integer
+          example: 30
+        denied:
+          type: integer
+          example: 8
+        returned:
+          type: integer
+          example: 2
+
+    # Auth Schemas
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email
+          example: user@school.com
+        password:
+          type: string
+          description: User password (minimum 6 characters)
+          minLength: 6
+          example: password123
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Login successful
+        data:
+          type: object
+          properties:
+            user:
+              $ref: "#/components/schemas/User"
+            token:
+              type: string
+              description: JWT token for authentication
+              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    SetupPasswordRequest:
+      type: object
+      required:
+        - token
+        - password
+      properties:
+        token:
+          type: string
+          description: Password setup token from email
+          example: setup_token_received_via_email
+        password:
+          type: string
+          minLength: 6
+          description: New password (minimum 6 characters)
+          example: newPassword123
+
+    # Pagination Schemas
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 50
+        pages:
+          type: integer
+          example: 5
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Error message describing what went wrong
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              msg:
+                type: string
+              param:
+                type: string
+              value:
+                type: string
+
+paths:
+  # ==================== AUTH ENDPOINTS ====================
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User Login
+      description: Authenticate user with email and password. Returns JWT token for subsequent requests.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+            examples:
+              student:
+                value:
+                  email: student@school.com
+                  password: password123
+              teacher:
+                value:
+                  email: teacher@school.com
+                  password: password123
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+              examples:
+                success:
+                  value:
+                    success: true
+                    message: Login successful
+                    data:
+                      user:
+                        id: 1
+                        email: user@school.com
+                        full_name: John Doe
+                        role: Teacher
+                        status: Active
+                      token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidPassword:
+                  value:
+                    success: false
+                    message: Invalid email or password
+                pendingSetup:
+                  value:
+                    success: false
+                    message: Please complete your account setup first. Check your email for the setup link.
+                inactive:
+                  value:
+                    success: false
+                    message: Your account has been deactivated. Please contact the administrator.
+
+  /auth/setup-password:
+    post:
+      tags:
+        - Authentication
+      summary: Setup Password (New User)
+      description: Set password for new users via email setup link. This endpoint is called when users receive their account setup email.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetupPasswordRequest"
+      responses:
+        "200":
+          description: Password setup successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Password setup successful. You can now login.
+        "400":
+          description: Invalid request or validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get Current User
+      description: Get information about the currently authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ==================== USER MANAGEMENT ENDPOINTS ====================
+  /users:
+    get:
+      tags:
+        - User Management
+      summary: Get All Users
+      description: Retrieve all users with optional filtering and pagination. Admin only.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: role
+          in: query
+          description: Filter by user role
+          schema:
+            type: string
+            enum: [Admin, Teacher, Student]
+          example: Teacher
+        - name: status
+          in: query
+          description: Filter by user status
+          schema:
+            type: string
+            enum: [Active, Inactive, Pending Setup]
+          example: Active
+        - name: search
+          in: query
+          description: Search by name or email
+          schema:
+            type: string
+          example: john
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          example: 10
+      responses:
+        "200":
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - User Management
+      summary: Create New User
+      description: Create a new user account. Admin only.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+            examples:
+              studentWithPassword:
+                value:
+                  email: newstudent@school.com
+                  password: initialPass123
+                  full_name: Alex Student
+                  role: Student
+                  phone: +1234567890
+                  department: Science
+              teacherPendingSetup:
+                value:
+                  email: newteacher@school.com
+                  full_name: Dr. Smith
+                  role: Teacher
+                  department: Mathematics
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: User created successfully
+                  data:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: Validation error or duplicate email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                emailExists:
+                  value:
+                    success: false
+                    message: Email already exists
+                validationError:
+                  value:
+                    success: false
+                    message: Validation failed
+                    errors:
+                      - msg: Email is required
+                        param: email
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/{id}:
+    get:
+      tags:
+        - User Management
+      summary: Get User by ID
+      description: Get a specific user's information. Admin only.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+          example: 5
+      responses:
+        "200":
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - User Management
+      summary: Update User
+      description: Update a user's information. Admin only.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID to update
+          schema:
+            type: integer
+          example: 5
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+            examples:
+              basic:
+                value:
+                  full_name: John Updated
+                  phone: +9876543210
+              changeRole:
+                value:
+                  role: Admin
+                  status: Active
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: User updated successfully
+                  data:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: Validation error or duplicate email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - User Management
+      summary: Delete User
+      description: Delete a user account. Admin only. Cannot delete yourself.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID to delete
+          schema:
+            type: integer
+          example: 5
+      responses:
+        "200":
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: User deleted successfully
+        "400":
+          description: Cannot delete your own account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/stats:
+    get:
+      tags:
+        - User Management
+      summary: Get User Statistics
+      description: Get statistics about users (total, by role, by status). Admin only.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User statistics retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/UserStats"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/change-password:
+    put:
+      tags:
+        - User Management
+      summary: Change Password
+      description: Change the current user's password. All authenticated users can use this.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "200":
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Password changed successfully
+        "400":
+          description: Validation error or incorrect current password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                incorrectPassword:
+                  value:
+                    success: false
+                    message: Current password is incorrect
+                samPassword:
+                  value:
+                    success: false
+                    message: New password must be different from current password
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ==================== EQUIPMENT ENDPOINTS ====================
+  /equipment:
+    get:
+      tags:
+        - Equipment Management
+      summary: Get All Equipment
+      description: Retrieve all equipment with optional filtering and pagination. All authenticated users.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            type: string
+          example: Classroom
+        - name: condition
+          in: query
+          description: Filter by condition
+          schema:
+            type: string
+            enum: [Excellent, Good, Fair, Poor, Needs Repair]
+          example: Excellent
+        - name: search
+          in: query
+          description: Search by name or description
+          schema:
+            type: string
+          example:
+        - name: available
+          in: query
+          description: Filter by availability (true for available_quantity > 0)
+          schema:
+            type: boolean
+          example: true
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          example: 10
+      responses:
+        "200":
+          description: Equipment retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Equipment"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - Equipment Management
+      summary: Create New Equipment
+      description: Create a new equipment item. Admin only.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEquipmentRequest"
+            examples:
+              basic:
+                value:
+                  name: Bunsen Burner
+                  category: Science Lab
+                  condition: Excellent
+                  quantity: 15
+                  available_quantity: 15
+              withImage:
+                value:
+                  name: Digital Microscope
+                  category: Biology Lab
+                  condition: Good
+                  quantity: 8
+                  available_quantity: 6
+                  description: Advanced microscope for detailed specimen observation
+                  image_url: https://example.com/images/microscope.jpg
+      responses:
+        "201":
+          description: Equipment created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Equipment created successfully
+                  data:
+                    $ref: "#/components/schemas/Equipment"
+        "400":
+          description: Validation error or duplicate name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                duplicateName:
+                  value:
+                    success: false
+                    message: Equipment with this name already exists
+                validationError:
+                  value:
+                    success: false
+                    message: Validation failed
+                    errors:
+                      - msg: Name is required
+                        param: name
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /equipment/{id}:
+    get:
+      tags:
+        - Equipment Management
+      summary: Get Equipment by ID
+      description: Get a specific equipment's information. All authenticated users.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Equipment ID
+          schema:
+            type: integer
+          example: 3
+      responses:
+        "200":
+          description: Equipment retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/Equipment"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - Equipment Management
+      summary: Update Equipment
+      description: Update equipment information. Admin only.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Equipment ID to update
+          schema:
+            type: integer
+          example: 3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEquipmentRequest"
+            examples:
+              updateCondition:
+                value:
+                  condition: Fair
+                  notes: Recently serviced
+              updateQuantity:
+                value:
+                  quantity: 12
+                  available_quantity: 10
+      responses:
+        "200":
+          description: Equipment updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Equipment updated successfully
+                  data:
+                    $ref: "#/components/schemas/Equipment"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Equipment Management
+      summary: Delete Equipment
+      description: Delete an equipment item. Admin only.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Equipment ID to delete
+          schema:
+            type: integer
+          example: 3
+      responses:
+        "200":
+          description: Equipment deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Equipment deleted successfully
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /equipment/categories:
+    get:
+      tags:
+        - Equipment Management
+      summary: Get Equipment Categories
+      description: Get list of all equipment categories. All authenticated users.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Categories retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      [
+                        Science Lab,
+                        Classroom Equipment,
+                        Sports Equipment,
+                        Art Supplies,
+                      ]
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ==================== EQUIPMENT REQUEST ENDPOINTS ====================
+  /requests:
+    post:
+      tags:
+        - Equipment Requests
+      summary: Create Equipment Request
+      description: Submit a new equipment request. Students and Teachers only.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEquipmentRequestRequest"
+            examples:
+              basic:
+                value:
+                  equipment_id: 3
+                  quantity: 2
+                  required_date: "2025-01-20"
+                  purpose: Biology class demonstration for cell structure topic
+              withReturnDate:
+                value:
+                  equipment_id: 5
+                  quantity: 1
+                  required_date: "2025-01-22"
+                  return_date: "2025-01-25"
+                  purpose: Science fair project preparation
+      responses:
+        "201":
+          description: Equipment request created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Equipment request submitted successfully
+        "400":
+          description: Validation error or insufficient quantity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                insufficientQuantity:
+                  value:
+                    success: false
+                    message: Insufficient quantity. Only 3 available
+                duplicatePending:
+                  value:
+                    success: false
+                    message: You already have a pending request for this equipment
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /requests/my-requests:
+    get:
+      tags:
+        - Equipment Requests
+      summary: Get My Requests
+      description: Get your own equipment requests with optional status filter. Students and Teachers.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          description: Filter by request status
+          schema:
+            type: string
+            enum: [Pending, Approved, Denied, Returned]
+          example: Pending
+      responses:
+        "200":
+          description: Requests retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EquipmentRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /requests/all:
+    get:
+      tags:
+        - Equipment Requests
+      summary: Get All Requests
+      description: Get all equipment requests with optional filters. Teachers and Admins only.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [Pending, Approved, Denied, Returned]
+          example: Pending
+        - name: user_id
+          in: query
+          description: Filter by requesting user
+          schema:
+            type: integer
+          example: 5
+        - name: equipment_id
+          in: query
+          description: Filter by equipment
+          schema:
+            type: integer
+          example: 3
+      responses:
+        "200":
+          description: Requests retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EquipmentRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Teacher or Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /requests/{id}/approve:
+    put:
+      tags:
+        - Equipment Requests
+      summary: Approve Request
+      description: Approve an equipment request. Teachers and Admins only.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Request ID to approve
+          schema:
+            type: integer
+          example: 5
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApproveRequestRequest"
+      responses:
+        "200":
+          description: Request approved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Request approved successfully
+        "400":
+          description: Request already processed or insufficient quantity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                alreadyApproved:
+                  value:
+                    success: false
+                    message: Request is already Approved
+                insufficientQuantity:
+                  value:
+                    success: false
+                    message: Insufficient equipment quantity available
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Teacher or Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /requests/{id}/deny:
+    put:
+      tags:
+        - Equipment Requests
+      summary: Deny Request
+      description: Deny an equipment request with a reason. Teachers and Admins only.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Request ID to deny
+          schema:
+            type: integer
+          example: 5
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DenyRequestRequest"
+      responses:
+        "200":
+          description: Request denied successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Request denied successfully
+        "400":
+          description: Request already processed or missing denial reason
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Teacher or Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /requests/{id}:
+    delete:
+      tags:
+        - Equipment Requests
+      summary: Cancel Request
+      description: Cancel your own pending request. Can only cancel requests you created.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Request ID to cancel
+          schema:
+            type: integer
+          example: 5
+      responses:
+        "200":
+          description: Request cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Request cancelled successfully
+        "400":
+          description: Only pending requests can be cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Can only cancel your own requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /requests/statistics:
+    get:
+      tags:
+        - Equipment Requests
+      summary: Get Request Statistics
+      description: Get statistics about equipment requests. Teachers and Admins only.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Statistics retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/RequestStats"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - Teacher or Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"

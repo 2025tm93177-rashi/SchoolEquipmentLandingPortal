@@ -1,0 +1,260 @@
+.teacher-dashboard {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* Reuse most styles from student dashboard */
+.dashboard-container,
+.dashboard-header,
+.stats-grid,
+.stat-card,
+.stat-icon,
+.stat-content,
+.section,
+.section-header,
+.requests-list,
+.request-card,
+.request-header,
+.request-details,
+.detail-item,
+.equipment-grid,
+.equipment-card,
+.equipment-icon,
+.equipment-category,
+.equipment-availability,
+.quick-actions,
+.action-button,
+.action-icon {
+  /* Inherits from StudentDashboard.css styles */
+}
+
+/* Approvals specific styles */
+.approvals-list {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.approval-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  transition: all 0.3s;
+  background: white;
+}
+
+.approval-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.approval-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.approval-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: #333;
+}
+
+.equipment-name {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: black;
+  text-transform: uppercase;
+}
+
+.statues-approved{
+  background-color: #4CAF50;
+}
+
+.statues-pending{
+  background-color: #FF9800;
+}
+
+.statues-denied{
+  background-color: #f44336;
+}
+
+.approval-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item .label {
+  font-size: 12px;
+  color: #999;
+  font-weight: 500;
+}
+
+.detail-item span:last-child {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.approval-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-success-small {
+  background-color: #4CAF50;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  flex: 1;
+}
+
+.btn-success-small:hover {
+  background-color: #45a049;
+}
+
+.btn-danger-small {
+  background-color: #f44336;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  flex: 1;
+}
+
+.btn-danger-small:hover {
+  background-color: #d32f2f;
+}
+
+.btn-secondary-small {
+  background-color: #2196F3;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-secondary-small:hover {
+  background-color: #1976D2;
+}
+
+.btn-primary-small {
+  background-color: #4CAF50;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.btn-primary-small:hover {
+  background-color: #45a049;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+}
+
+.empty-state p {
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Copy other necessary styles */
+.btn-primary {
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #2196F3;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.btn-link:hover {
+  color: #1976D2;
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 20px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .equipment-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .approval-details {
+    grid-template-columns: 1fr;
+  }
+
+  .approval-actions {
+    flex-direction: column;
+  }
+}

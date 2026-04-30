@@ -1,1 +1,1 @@
-# SchoolEquipmentLandingPortal
+# EquipmentLandingPortal

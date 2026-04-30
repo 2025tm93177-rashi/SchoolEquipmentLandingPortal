@@ -1,0 +1,32 @@
+{
+  "name": "school-equipment-backend",
+  "version": "1.0.0",
+  "description": "Backend for School Equipment Lending Portal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "init-db": "node config/database.js",
+    "reset-db": "node scripts/reset-db.js"
+  },
+  "keywords": [
+    "express",
+    "sqlite",
+    "jwt",
+    "crud"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.21.2",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
